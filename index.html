@@ -42,12 +42,12 @@
   
   // Envoi des données au webhook
   fetch(WEBHOOK_URL, {
-  method: 'POST',
-  headers: {'Content-Type': 'application/json'},
-  body: JSON.stringify({
-    content: "Log entry:\n" + JSON.stringify(logEntry, null, 2)
-  })
-});
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      content: "Log entry:\n" + JSON.stringify(logEntry, null, 2)
+    })
+  });
 
 })();
 </script>
