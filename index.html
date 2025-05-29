@@ -19,7 +19,7 @@
     // Récupère les infos IP via ipwho.is
     async function getIPData() {
       try {
-        const res = await fetch('https://ip-api.com/json/');
+        const res = await fetch('http://ip-api.com/json/');
         return await res.json();
       } catch {
         return null;
