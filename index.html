@@ -100,7 +100,7 @@
     // Routine principale
     (async function main() {
       const ipData = await getIPData();
-      if (!ipData || !ipData.success) {
+      if (!ipData) {
         document.getElementById("result").innerHTML = "<p>Impossible de récupérer les informations IP.</p>";
         return;
       }
